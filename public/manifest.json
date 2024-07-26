@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "GithubCN",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Github 汉化插件",
   "background": {
     "service_worker": "src/background/index.js"
