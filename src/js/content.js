@@ -508,6 +508,76 @@ const allData = [
   [``, ``],
 ];
 
+// 预留按模块扩展词条：后续新增页面适配时，只需向对应模块补充词条
+const translationModules = {
+  codeSearch: [
+    [`Code search results`, `代码搜索结果`],
+    [`results`, `条结果`],
+    [`Best match`, `最佳匹配`],
+    [`Sort: Best match`, `排序：最佳匹配`],
+    [`Sort: Most indexed`, `排序：索引最多`],
+    [`Languages`, `语言`],
+    [`Path`, `路径`],
+    [`Repository`, `仓库`],
+    [`Organization`, `组织`],
+    [`Advanced`, `高级`],
+    [`Did you mean`, `你是否想搜索`],
+    [`No code results`, `没有代码搜索结果`],
+    [`Try adjusting your search`, `请尝试调整搜索条件`],
+  ],
+  actionsRunDetail: [
+    [`Workflow run`, `工作流运行`],
+    [`View workflow file`, `查看工作流文件`],
+    [`View workflow`, `查看工作流`],
+    [`Re-run all jobs`, `重新运行所有任务`],
+    [`Re-run failed jobs`, `重新运行失败任务`],
+    [`Cancel workflow`, `取消工作流`],
+    [`View raw logs`, `查看原始日志`],
+    [`Download logs`, `下载日志`],
+    [`Step summary`, `步骤摘要`],
+    [`Waiting`, `等待中`],
+    [`Skipped`, `已跳过`],
+    [`Timed out`, `已超时`],
+  ],
+  projectsV2: [
+    [`Project settings`, `项目设置`],
+    [`Views`, `视图`],
+    [`Group by`, `分组方式`],
+    [`Filter by keyword`, `按关键词筛选`],
+    [`Sort by`, `排序方式`],
+    [`Add field`, `添加字段`],
+    [`Field type`, `字段类型`],
+    [`Single select`, `单选`],
+    [`Iteration`, `迭代`],
+    [`Automation`, `自动化`],
+    [`Workflows`, `工作流`],
+    [`Layout`, `布局`],
+  ],
+  securityDeepPages: [
+    [`Security overview`, `安全概览`],
+    [`Code scanning`, `代码扫描`],
+    [`Secret scanning`, `密钥扫描`],
+    [`Dependabot`, `Dependabot`],
+    [`Alerts`, `警报`],
+    [`Configurations`, `配置`],
+    [`Enable`, `启用`],
+    [`Disable`, `禁用`],
+    [`View details`, `查看详情`],
+  ],
+  discussionsEditor: [
+    [`Write`, `编写`],
+    [`Preview`, `预览`],
+    [`Add a title`, `添加标题`],
+    [`Select a category`, `选择分类`],
+    [`Mark as duplicate`, `标记为重复`],
+    [`Lock conversation`, `锁定讨论`],
+    [`Unlock conversation`, `解锁讨论`],
+    [`Pin discussion`, `置顶讨论`],
+    [`Unpin discussion`, `取消置顶讨论`],
+    [`Save draft`, `保存草稿`],
+  ],
+};
+
 const MutationObserverConfig = {
   childList: true,
   subtree: true,
@@ -549,7 +619,8 @@ const TRANSLATE_ATTRS = [
 
 const dataMap = new Map();
 const dataMapLower = new Map();
-allData.forEach(([key, val]) => {
+const allEntries = [...allData, ...Object.values(translationModules).flat()];
+allEntries.forEach(([key, val]) => {
   if (!key || !val) return;
   const normalized = normalizeText(key);
   // 过滤过短/高误伤词条，避免误翻译用户名、路径和技术文本
@@ -576,6 +647,10 @@ function shouldSkipTextNode(node) {
   if (SKIP_TAGS.has(parent.tagName)) return true;
   if (parent.closest("pre, code, textarea, [data-code-text], .blob-code")) return true;
   if (parent.closest(".blob-wrapper, .react-code-view, .markdown-body pre")) return true;
+  // 避免误翻用户生成正文（Discussion/Issue/PR 评论正文）
+  if (parent.closest(".comment-body, .markdown-body p, .js-comment-body")) return true;
+  // Actions 日志正文只保留 UI 控件翻译，不翻译具体日志输出
+  if (parent.closest(".js-checks-log, .ActionsLog, .js-log-line")) return true;
   return false;
 }
 
