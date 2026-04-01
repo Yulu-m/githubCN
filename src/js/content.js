@@ -355,6 +355,149 @@ const allData = [
   [`SSH and GPG keys`, `SSH和GPG密钥`],
   [`Cancel changes`, `取消更改`],
   [`Commit changes...`, `提交更改...`],
+
+  [`Open`, `打开`],
+  [`Closed`, `已关闭`],
+  [`Merged`, `已合并`],
+  [`Review changes`, `审查更改`],
+  [`Compare changes`, `比较更改`],
+  [`Merge pull request`, `合并拉取请求`],
+  [`Conversation`, `讨论`],
+  [`Checks`, `检查`],
+  [`Files changed`, `文件变更`],
+  [`Assignees`, `指派人员`],
+  [`Reviewers`, `审查者`],
+  [`No one assigned`, `无人指派`],
+  [`No reviews`, `暂无审查`],
+  [`Development`, `开发`],
+  [`Linked issues`, `关联议题`],
+  [`Notifications`, `通知`],
+  [`Create pull request`, `创建拉取请求`],
+  [`Draft pull request`, `草稿拉取请求`],
+  [`Open a pull request`, `发起拉取请求`],
+  [`Create new discussion`, `发起新讨论`],
+  [`Pinned discussions`, `置顶讨论`],
+  [`Categories`, `分类`],
+  [`Answered`, `已回答`],
+  [`Unanswered`, `未回答`],
+  [`Mark as answered`, `标记为已回答`],
+  [`Convert to issue`, `转换为议题`],
+  [`Actions`, `操作`],
+  [`All workflows`, `全部工作流`],
+  [`Failed`, `失败`],
+  [`Cancelled`, `已取消`],
+  [`In progress`, `进行中`],
+  [`Queued`, `排队中`],
+  [`Run workflow`, `运行工作流`],
+  [`Re-run jobs`, `重新运行任务`],
+  [`Artifacts`, `产物`],
+  [`Annotations`, `注解`],
+  [`Summary`, `摘要`],
+  [`Jobs`, `任务`],
+  [`Deployment protection rules`, `部署保护规则`],
+  [`Projects (beta)`, `项目（测试版）`],
+  [`Roadmap`, `路线图`],
+  [`Table`, `表格`],
+  [`Board`, `看板`],
+  [`Add item`, `添加条目`],
+  [`Insights`, `洞察`],
+  [`Create new project`, `创建新项目`],
+  [`Latest commit`, `最新提交`],
+  [`commit`, `提交`],
+  [`commits`, `次提交`],
+  [`History`, `历史`],
+  [`Browse files`, `浏览文件`],
+  [`View all files`, `查看所有文件`],
+  [`Raw`, `原始`],
+  [`Blame`, `追溯`],
+  [`Delete file`, `删除文件`],
+  [`Edit file`, `编辑文件`],
+  [`Open in desktop`, `在桌面端打开`],
+  [`View blame`, `查看追溯`],
+  [`Create tag`, `创建标签`],
+  [`Compare`, `比较`],
+  [`Release notes`, `发布说明`],
+  [`Latest`, `最新`],
+  [`Draft`, `草稿`],
+  [`Pre-release`, `预发布`],
+  [`Assets`, `资源`],
+  [`Download`, `下载`],
+  [`Watchers`, `关注者`],
+  [`Stars`, `星标`],
+  [`Forks`, `派生`],
+  [`Followers`, `关注者`],
+  [`People`, `成员`],
+  [`Teams`, `团队`],
+  [`Pinned repositories`, `置顶仓库`],
+  [`Block or Report`, `拉黑或举报`],
+  [`Sponsoring`, `赞助中`],
+  [`Contribution graph`, `贡献图`],
+  [`Organizations`, `组织`],
+  [`Owned by`, `归属于`],
+  [`Member since`, `加入时间`],
+  [`General settings`, `常规设置`],
+  [`Moderation options`, `管理选项`],
+  [`Saved replies`, `已保存回复`],
+  [`Code, planning, and automation`, `代码、计划与自动化`],
+  [`Code review limits`, `代码审查限制`],
+  [`Default to pull request title`, `默认使用拉取请求标题`],
+  [`Code search`, `代码搜索`],
+  [`No results matched your search.`, `没有匹配搜索结果。`],
+  [`Clear filters`, `清空筛选`],
+  [`Sort by`, `排序方式`],
+  [`Newest`, `最新`],
+  [`Oldest`, `最早`],
+  [`Most commented`, `评论最多`],
+  [`Least commented`, `评论最少`],
+  [`Recently updated`, `最近更新`],
+  [`Least recently updated`, `最久未更新`],
+  [`Author`, `作者`],
+  [`Label`, `标签`],
+  [`Projects`, `项目`],
+  [`Milestone`, `里程碑`],
+  [`Assignee`, `指派人`],
+  [`Review status`, `审查状态`],
+  [`No description provided.`, `未提供描述。`],
+  [`Uh oh!`, `哎呀！`],
+  [`There was an error while loading.`, `加载时发生错误。`],
+  [`Retry`, `重试`],
+  [`Wiki`, `维基`],
+  [`Pages`, `页面`],
+  [`Pulse`, `脉搏图`],
+  [`Graph`, `图表`],
+  [`Contributors`, `贡献者`],
+  [`Dependabot alerts`, `Dependabot 警报`],
+  [`Code scanning alerts`, `代码扫描警报`],
+  [`Secret scanning alerts`, `密钥扫描警报`],
+  [`Security policy`, `安全策略`],
+  [`Open issues`, `开放议题`],
+  [`Open pull requests`, `开放拉取请求`],
+  [`No open pull requests`, `没有开放的拉取请求`],
+  [`No open issues`, `没有开放的议题`],
+  [`No closed issues`, `没有已关闭的议题`],
+  [`No closed pull requests`, `没有已关闭的拉取请求`],
+  [`Create new label`, `创建新标签`],
+  [`Create new milestone`, `创建新里程碑`],
+  [`Jump to`, `跳转到`],
+  [`Filter by`, `按条件筛选`],
+  [`Apply filters`, `应用筛选`],
+  [`Clear current search query, filters, and sorts`, `清除当前搜索条件、筛选和排序`],
+  [`Choose repositories`, `选择仓库`],
+  [`Search repositories`, `搜索仓库`],
+  [`Search issues`, `搜索议题`],
+  [`Search pull requests`, `搜索拉取请求`],
+  [`Open sidebar`, `打开侧边栏`],
+  [`Close sidebar`, `关闭侧边栏`],
+  [`Account menu`, `账户菜单`],
+  [`View profile`, `查看个人资料`],
+  [`Feature request`, `功能请求`],
+  [`Bug report`, `缺陷报告`],
+  [`Pinned items`, `置顶条目`],
+  [`No items found`, `未找到条目`],
+  [`No results`, `无结果`],
+  [`Loading`, `加载中`],
+  [`Dismiss`, `关闭`],
+  [`Submit`, `提交`],
   [``, ``],
   [``, ``],
   [``, ``],
@@ -368,64 +511,184 @@ const allData = [
 const MutationObserverConfig = {
   childList: true,
   subtree: true,
-  attributeFilter: ["data-label"],
   characterData: true,
+  attributes: true,
+  attributeFilter: [
+    "data-label",
+    "placeholder",
+    "value",
+    "aria-label",
+    "title",
+    "aria-placeholder",
+    "data-disable-with",
+    "data-signin-label",
+  ],
 };
 
-const observer = new MutationObserver(function (mutations) {
-  const treeWalker = document.createTreeWalker(
-    document.body,
-    NodeFilter.SHOW_ALL,
-    {
-      acceptNode: function (node) {
-        if (
-          node.nodeType === 3 ||
-          (node.hasAttribute &&
-            (node.hasAttribute("data-label") ||
-              node.hasAttribute("placeholder") ||
-              node.hasAttribute("value")))
-        ) {
-          return NodeFilter.FILTER_ACCEPT;
-        } else {
-          return NodeFilter.FILTER_SKIP;
-        }
-      },
-    },
-    false
-  );
-  let dataMap = new Map();
-  allData.forEach(([key, val]) => {
-    if (key && !dataMap.has(key)) {
-      dataMap.set(key, val);
+const SKIP_TAGS = new Set([
+  "SCRIPT",
+  "STYLE",
+  "NOSCRIPT",
+  "CODE",
+  "PRE",
+  "TEXTAREA",
+  "SVG",
+  "PATH",
+]);
+
+const TRANSLATE_ATTRS = [
+  "data-label",
+  "placeholder",
+  "value",
+  "aria-label",
+  "title",
+  "aria-placeholder",
+  "data-disable-with",
+  "data-signin-label",
+];
+
+const dataMap = new Map();
+const dataMapLower = new Map();
+allData.forEach(([key, val]) => {
+  if (!key || !val) return;
+  const normalized = normalizeText(key);
+  // 过滤过短/高误伤词条，避免误翻译用户名、路径和技术文本
+  if (normalized.length <= 1) return;
+  if (!normalized) return;
+  if (!dataMap.has(normalized)) dataMap.set(normalized, val);
+  const lower = normalized.toLowerCase();
+  if (!dataMapLower.has(lower)) dataMapLower.set(lower, val);
+});
+
+function normalizeText(text = "") {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function getTranslated(text = "") {
+  const normalized = normalizeText(text);
+  if (!normalized) return "";
+  return dataMap.get(normalized) || dataMapLower.get(normalized.toLowerCase()) || "";
+}
+
+function shouldSkipTextNode(node) {
+  const parent = node.parentElement;
+  if (!parent) return true;
+  if (SKIP_TAGS.has(parent.tagName)) return true;
+  if (parent.closest("pre, code, textarea, [data-code-text], .blob-code")) return true;
+  if (parent.closest(".blob-wrapper, .react-code-view, .markdown-body pre")) return true;
+  return false;
+}
+
+function looksLikeTechnicalText(text) {
+  if (!text) return true;
+  if (/^[a-f0-9]{7,40}$/i.test(text)) return true; // SHA
+  if (/^refs\/|^[~^./\\-]+|\.\/|\/$/.test(text)) return true; // 路径/分支引用
+  if (/^[@#][\w-]+$/.test(text)) return true; // @mention / #123
+  if (/[`$><{}[\]\\]/.test(text)) return true; // 命令/代码风格
+  return false;
+}
+
+function translateTextNode(node) {
+  if (!node || node.nodeType !== Node.TEXT_NODE || shouldSkipTextNode(node)) return;
+  const current = node.textContent;
+  if (!current || !current.trim()) return;
+  if (looksLikeTechnicalText(current.trim())) return;
+  const translated = getTranslated(current);
+  if (translated && translated !== current) {
+    node.textContent = translated;
+  }
+}
+
+function translateElementAttributes(el) {
+  if (!el || el.nodeType !== Node.ELEMENT_NODE || SKIP_TAGS.has(el.tagName)) return;
+  TRANSLATE_ATTRS.forEach((attr) => {
+    if (!el.hasAttribute(attr)) return;
+    if (attr === "value") {
+      const type = (el.getAttribute("type") || "").toLowerCase();
+      const tag = el.tagName;
+      // 仅翻译按钮类 value，避免误改用户输入框内容
+      const isButtonLike =
+        tag === "BUTTON" ||
+        (tag === "INPUT" && ["button", "submit", "reset"].includes(type));
+      if (!isButtonLike) return;
+    }
+    const value = el.getAttribute(attr);
+    if (!value || looksLikeTechnicalText(value.trim())) return;
+    const translated = getTranslated(value || "");
+    if (translated && translated !== value) {
+      el.setAttribute(attr, translated);
     }
   });
-  let currentNode = treeWalker.currentNode;
-  while (currentNode) {
-    if (currentNode.nodeType === 3) {
-      let key1 = currentNode.textContent
-        .replace(/^\s*|\s*$/g, "")
-        .replace(/\s+/g, " ");
-      if (dataMap.has(key1)) currentNode.textContent = dataMap.get(key1);
+}
+
+function translateTree(root) {
+  if (!root) return;
+
+  if (root.nodeType === Node.TEXT_NODE) {
+    translateTextNode(root);
+    return;
+  }
+
+  if (root.nodeType === Node.ELEMENT_NODE) {
+    translateElementAttributes(root);
+  }
+
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+  let current = walker.currentNode;
+  while (current) {
+    if (current.nodeType === Node.TEXT_NODE) {
+      translateTextNode(current);
     } else {
-      let key2 = currentNode.getAttribute("data-label");
-      if (key2 && dataMap.has(key2))
-        currentNode.setAttribute("data-label", dataMap.get(key2));
-      let key3 = currentNode.getAttribute("placeholder") || "";
-      if ((key3 = key3.trim())) {
-        if (dataMap.has(key3))
-          currentNode.setAttribute("placeholder", dataMap.get(key3));
-      }
-      let key4 = currentNode.getAttribute("value");
-      if (currentNode.tagName == "INPUT" && dataMap.has(key4)) {
-        currentNode.setAttribute("value", dataMap.get(key4));
-        let key5 = currentNode.getAttribute("data-signin-label");
-        let key6 = currentNode.getAttribute("data-disable-with");
-        currentNode.setAttribute("data-signin-label", dataMap.get(key5));
-        currentNode.setAttribute("data-disable-with", dataMap.get(key6));
-      }
+      translateElementAttributes(current);
     }
-    currentNode = treeWalker.nextNode();
+    current = walker.nextNode();
+  }
+}
+
+let rafId = null;
+const pendingRoots = new Set();
+function scheduleTranslate(root = document.body) {
+  pendingRoots.add(root || document.body);
+  if (rafId) return;
+  rafId = requestAnimationFrame(() => {
+    const roots = Array.from(pendingRoots);
+    pendingRoots.clear();
+    rafId = null;
+    roots.forEach((item) => translateTree(item));
+  });
+}
+
+const observer = new MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    if (mutation.type === "characterData") {
+      scheduleTranslate(mutation.target);
+      continue;
+    }
+
+    if (mutation.type === "attributes") {
+      scheduleTranslate(mutation.target);
+      continue;
+    }
+
+    for (const node of mutation.addedNodes) {
+      scheduleTranslate(node);
+    }
   }
 });
 
-observer.observe(document.body, MutationObserverConfig);
+function startObserve() {
+  if (!document.body) return;
+  observer.observe(document.body, MutationObserverConfig);
+  scheduleTranslate(document.body);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", startObserve, { once: true });
+} else {
+  startObserve();
+}
+
+// 适配 GitHub Turbo/PJAX 页面切换与局部异步加载
+["turbo:render", "turbo:load", "pjax:end", "details:toggled"].forEach((evt) => {
+  document.addEventListener(evt, () => scheduleTranslate(document.body), true);
+});
