@@ -578,6 +578,20 @@ const translationModules = {
   ],
 };
 
+// 术语标准表：优先级高于 allData/模块词条
+const glossaryEntries = [
+  [`Star`, `星标`],
+  [`Stars`, `星标数`],
+  [`Starred`, `已标星`],
+  [`Followers`, `粉丝`],
+  [`Following`, `关注中`],
+  [`Watch`, `关注`],
+  [`Fork`, `派生`],
+  [`Pull request`, `拉取请求`],
+  [`Pull requests`, `拉取请求`],
+  [`Issues`, `问题`],
+];
+
 const MutationObserverConfig = {
   childList: true,
   subtree: true,
@@ -619,7 +633,15 @@ const TRANSLATE_ATTRS = [
 
 const dataMap = new Map();
 const dataMapLower = new Map();
+const glossaryMap = new Map();
+const glossaryMapLower = new Map();
 const allEntries = [...allData, ...Object.values(translationModules).flat()];
+glossaryEntries.forEach(([key, val]) => {
+  const normalized = normalizeText(key);
+  if (!normalized || !val) return;
+  glossaryMap.set(normalized, val);
+  glossaryMapLower.set(normalized.toLowerCase(), val);
+});
 allEntries.forEach(([key, val]) => {
   if (!key || !val) return;
   const normalized = normalizeText(key);
@@ -630,15 +652,61 @@ allEntries.forEach(([key, val]) => {
   const lower = normalized.toLowerCase();
   if (!dataMapLower.has(lower)) dataMapLower.set(lower, val);
 });
+const sortedGlossaryKeys = Array.from(glossaryMap.keys()).sort((a, b) => b.length - a.length);
+const sortedDataKeys = Array.from(dataMap.keys()).sort((a, b) => b.length - a.length);
+const translatedTextCache = new WeakMap();
+const translatedAttrCache = new WeakMap();
 
 function normalizeText(text = "") {
   return text.replace(/\s+/g, " ").trim();
 }
 
+function escapeRegExp(text = "") {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function smartPluralLookup(normalized = "", primaryMap, lowerMap) {
+  const lower = normalized.toLowerCase();
+  if (primaryMap.has(normalized)) return primaryMap.get(normalized);
+  if (lowerMap.has(lower)) return lowerMap.get(lower);
+  if (lower.endsWith("s")) {
+    const singular = lower.slice(0, -1);
+    if (lowerMap.has(singular)) return lowerMap.get(singular);
+  }
+  return "";
+}
+
 function getTranslated(text = "") {
   const normalized = normalizeText(text);
   if (!normalized) return "";
-  return dataMap.get(normalized) || dataMapLower.get(normalized.toLowerCase()) || "";
+  // 术语标准表优先
+  return (
+    smartPluralLookup(normalized, glossaryMap, glossaryMapLower) ||
+    smartPluralLookup(normalized, dataMap, dataMapLower) ||
+    ""
+  );
+}
+
+function replaceByPriority(source = "", keys = [], primaryMap, lowerMap) {
+  let result = source;
+  keys.forEach((key) => {
+    const translated = primaryMap.get(key) || lowerMap.get(key.toLowerCase());
+    if (!translated) return;
+    const pattern = new RegExp(`\\b${escapeRegExp(key)}\\b`, "gi");
+    result = result.replace(pattern, translated);
+  });
+  return result;
+}
+
+function translateWithPriority(text = "") {
+  const normalized = normalizeText(text);
+  if (!normalized) return "";
+  const direct = getTranslated(normalized);
+  if (direct) return direct;
+  // 长词组优先：先 glossary，再普通词条
+  let replaced = replaceByPriority(normalized, sortedGlossaryKeys, glossaryMap, glossaryMapLower);
+  replaced = replaceByPriority(replaced, sortedDataKeys, dataMap, dataMapLower);
+  return replaced !== normalized ? replaced : "";
 }
 
 function shouldSkipTextNode(node) {
@@ -651,6 +719,8 @@ function shouldSkipTextNode(node) {
   if (parent.closest(".comment-body, .markdown-body p, .js-comment-body")) return true;
   // Actions 日志正文只保留 UI 控件翻译，不翻译具体日志输出
   if (parent.closest(".js-checks-log, .ActionsLog, .js-log-line")) return true;
+  // 跳过用户名/仓库名/路径常见节点
+  if (parent.closest("[data-hovercard-type='user'], [data-hovercard-type='repository'], .commit-author, .Link--secondary")) return true;
   return false;
 }
 
@@ -668,14 +738,20 @@ function translateTextNode(node) {
   const current = node.textContent;
   if (!current || !current.trim()) return;
   if (looksLikeTechnicalText(current.trim())) return;
-  const translated = getTranslated(current);
+  if (translatedTextCache.get(node) === current) return;
+  const translated = translateWithPriority(current);
   if (translated && translated !== current) {
     node.textContent = translated;
+    translatedTextCache.set(node, translated);
+    return;
   }
+  translatedTextCache.set(node, current);
 }
 
 function translateElementAttributes(el) {
   if (!el || el.nodeType !== Node.ELEMENT_NODE || SKIP_TAGS.has(el.tagName)) return;
+  const attrSnapshot = TRANSLATE_ATTRS.map((attr) => `${attr}:${el.getAttribute(attr) || ""}`).join("|");
+  if (translatedAttrCache.get(el) === attrSnapshot) return;
   TRANSLATE_ATTRS.forEach((attr) => {
     if (!el.hasAttribute(attr)) return;
     if (attr === "value") {
@@ -689,11 +765,13 @@ function translateElementAttributes(el) {
     }
     const value = el.getAttribute(attr);
     if (!value || looksLikeTechnicalText(value.trim())) return;
-    const translated = getTranslated(value || "");
+    const translated = translateWithPriority(value || "");
     if (translated && translated !== value) {
       el.setAttribute(attr, translated);
     }
   });
+  const newSnapshot = TRANSLATE_ATTRS.map((attr) => `${attr}:${el.getAttribute(attr) || ""}`).join("|");
+  translatedAttrCache.set(el, newSnapshot);
 }
 
 function translateTree(root) {
