@@ -580,8 +580,8 @@ const translationModules = {
 
 // 术语标准表：优先级高于 allData/模块词条
 const glossaryEntries = [
-  [`Star`, `标星`],
-  [`Stars`, `标星数`],
+  [`Star`, `星标`],
+  [`Stars`, `星标数`],
   [`Starred`, `已标星`],
   [`Followers`, `粉丝`],
   [`Following`, `关注中`],
