@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>GithubCN 选项</title>
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 860px; margin: 24px auto; padding: 0 16px; }
+      table { width: 100%; border-collapse: collapse; }
+      td, th { border: 1px solid #ddd; padding: 8px; }
+      .form { display:grid; grid-template-columns: 2fr 2fr auto auto auto auto; gap:8px; margin-bottom:16px; }
+    </style>
+  </head>
+  <body>
+    <h2>自定义词条</h2>
+    <div class="form">
+      <input id="source" placeholder="英文原文" />
+      <input id="target" placeholder="中文翻译" />
+      <label><input id="regex" type="checkbox" />正则</label>
+      <label><input id="caseSensitive" type="checkbox" />区分大小写</label>
+      <label><input id="boundary" type="checkbox" checked />词边界</label>
+      <button id="add">添加</button>
+    </div>
+    <table>
+      <thead><tr><th>原文</th><th>译文</th><th>规则</th><th>操作</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <script src="../js/constants.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

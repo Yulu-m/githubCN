@@ -3,13 +3,18 @@
   "version": "1.4.0",
   "description": "Github 浏览器汉化扩展",
   "scripts": {
-    "publish": "node app.js"
+    "publish": "node app.js",
+    "lint": "eslint src/**/*.js",
+    "format": "prettier --check \"src/**/*.{js,html,json}\" README.md",
+    "test": "node tests/smoke.mjs"
   },
   "keywords": [],
   "author": "JQiue",
   "license": "ISC",
   "devDependencies": {
-    "@plasmo-corp/ewu": "^0.6.0"
+    "@plasmo-corp/ewu": "^0.6.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3"
   },
   "type": "module",
   "dependencies": {

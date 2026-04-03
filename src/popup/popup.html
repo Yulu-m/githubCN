@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>GithubCN</title>
+    <style>
+      body { font-family: Arial, sans-serif; min-width: 300px; padding: 12px; }
+      .row { display:flex; justify-content:space-between; align-items:center; margin:8px 0; }
+      button { width:100%; margin-top:8px; }
+      .stats { background:#f6f8fa; border:1px solid #d0d7de; border-radius:6px; padding:8px; margin-top:8px; font-size:12px; }
+    </style>
+  </head>
+  <body>
+    <div class="row"><span>启用翻译</span><input id="enabled" type="checkbox" /></div>
+    <div class="row"><span>仅翻译 UI</span><input id="uiOnly" type="checkbox" /></div>
+    <div class="row">
+      <span>翻译模式</span>
+      <select id="mode"><option value="strict">严格</option><option value="enhanced">增强</option></select>
+    </div>
+    <div class="stats" id="stats">本页状态加载中...</div>
+    <button id="restore">一键恢复原文</button>
+    <button id="exportMisses">导出未命中 JSON（调试）</button>
+    <button id="openOptions">自定义词条管理</button>
+    <script src="../js/constants.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
