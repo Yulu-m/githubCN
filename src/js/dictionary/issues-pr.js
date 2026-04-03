@@ -16,5 +16,15 @@
     ['Review changes', '审查变更'],
     ['Create pull request', '创建拉取请求'],
     ['Draft pull request', '草稿拉取请求'],
+    ['Code owners', '代码所有者'],
+    ['Squash and merge', '压缩并合并'],
+    ['Rebase and merge', '变基并合并'],
+    ['Auto-merge', '自动合并'],
+    ['Review required', '需要审查'],
+    ['Branch is up to date', '分支已是最新'],
+    ['Conversation resolved', '讨论已解决'],
+    ['Dismiss review', '驳回审查'],
+    ['Required status checks', '必需状态检查'],
+    ['Merge queue', '合并队列'],
   ].map(([source, target]) => ({ source, target, scope: 'ui', mode: 'enhanced' }));
 })(window);
