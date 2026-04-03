@@ -642,6 +642,11 @@ const TRANSLATE_ATTRS = [
   "data-disable-with",
   "data-signin-label",
 ];
+const TRANSLATE_API = "https://libretranslate.de/translate";
+const TRANSLATE_SOURCE_LANG = "en";
+const TRANSLATE_TARGET_LANG = "zh";
+const TRANSLATE_FAILED_TEXT = "[翻译失败]";
+const TRANSLATE_MIXED_WARNING = "当前选中文本可能已被页面汉化污染（中英混杂），翻译结果可能不准确。";
 
 const dataMap = new Map();
 const dataMapLower = new Map();
@@ -714,46 +719,97 @@ function getTranslated(text = "") {
 }
 
 async function translateLongText(text = "") {
+  console.debug("[GitHub CN][translateLongText] request text:", text);
   try {
-    const response = await fetch("https://libretranslate.de/translate", {
+    const response = await fetch(TRANSLATE_API, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         q: text,
-        source: "en",
-        target: "zh",
+        source: TRANSLATE_SOURCE_LANG,
+        target: TRANSLATE_TARGET_LANG,
         format: "text",
       }),
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-    return data?.translatedText || text;
+    const translatedText = data?.translatedText;
+    if (!translatedText || typeof translatedText !== "string") {
+      throw new Error(`Invalid translatedText: ${JSON.stringify(data)}`);
+    }
+    console.debug("[GitHub CN][translateLongText] response translatedText:", translatedText);
+    return translatedText;
   } catch (error) {
     console.error("[GitHub CN] translateLongText failed:", error);
-    return text;
+    return TRANSLATE_FAILED_TEXT;
   }
 }
 
 async function translateWithCache(text = "") {
   if (!text) return "";
-  if (cache.has(text)) return cache.get(text);
+  if (cache.has(text)) {
+    console.debug("[GitHub CN][translateWithCache] cache hit");
+    return cache.get(text);
+  }
+  console.debug("[GitHub CN][translateWithCache] cache miss, call api");
   const translated = await translateLongText(text);
   cache.set(text, translated);
   return translated;
 }
 
+function isMixedChineseEnglish(text = "") {
+  return /[\u4e00-\u9fa5]/.test(text) && /[A-Za-z]/.test(text);
+}
+
 async function smartTranslate(text = "") {
   const normalized = normalizeText(text);
   if (!normalized) return "";
+  console.debug("[GitHub CN][smartTranslate] input:", normalized);
   const glossaryResult = smartPluralLookup(normalized, glossaryMap, glossaryMapLower);
-  if (glossaryResult) return glossaryResult;
+  if (glossaryResult) {
+    console.debug("[GitHub CN][smartTranslate] glossary hit:", glossaryResult);
+    return glossaryResult;
+  }
   if (normalized.length < 20) {
     const phraseResult = smartPluralLookup(normalized, phraseMap, phraseMapLower);
-    if (phraseResult) return phraseResult;
+    if (phraseResult) {
+      console.debug("[GitHub CN][smartTranslate] phrase hit:", phraseResult);
+      return phraseResult;
+    }
   }
+  console.debug("[GitHub CN][smartTranslate] fallback to API");
   return translateWithCache(normalized);
+}
+
+async function smartTranslateDetailed(text = "") {
+  const normalized = normalizeText(text);
+  if (!normalized) {
+    return { translated: "", source: "empty", warning: "" };
+  }
+  const isMixed = isMixedChineseEnglish(normalized);
+  let warning = "";
+  if (isMixed) {
+    warning = TRANSLATE_MIXED_WARNING;
+    console.warn("[GitHub CN][smartTranslateDetailed] mixed text warning:", normalized);
+  }
+  const glossaryResult = smartPluralLookup(normalized, glossaryMap, glossaryMapLower);
+  if (glossaryResult) {
+    console.debug("[GitHub CN][smartTranslateDetailed] glossary hit");
+    return { translated: glossaryResult, source: "glossary", warning };
+  }
+  if (normalized.length < 20) {
+    const phraseResult = smartPluralLookup(normalized, phraseMap, phraseMapLower);
+    if (phraseResult) {
+      console.debug("[GitHub CN][smartTranslateDetailed] phrase hit");
+      return { translated: phraseResult, source: "phrase", warning };
+    }
+  }
+  console.debug("[GitHub CN][smartTranslateDetailed] API route");
+  const translated = await smartTranslate(normalized);
+  console.debug("[GitHub CN][smartTranslateDetailed] API result:", translated);
+  return { translated, source: "api", warning };
 }
 
 function replaceByPriority(source = "", keys = [], primaryMap, lowerMap) {
@@ -982,16 +1038,20 @@ function showSelectionTranslateButton(range, text) {
   btn.addEventListener("mousedown", (event) => event.preventDefault());
   btn.addEventListener("click", async (event) => {
     event.stopPropagation();
-    const translated = await smartTranslate(text);
-    showTranslatePopup(text, translated || text, rect);
+    const detail = await smartTranslateDetailed(text);
+    console.debug("[GitHub CN][selection] final popup result:", detail);
+    showTranslatePopup(text, detail, rect);
     hideSelectionTranslateButton();
   });
   document.body.appendChild(btn);
   translateButtonEl = btn;
 }
 
-function showTranslatePopup(original, translated, rect) {
+function showTranslatePopup(original, detail, rect) {
   hideTranslatePopup();
+  const translated = detail?.translated || TRANSLATE_FAILED_TEXT;
+  const source = detail?.source || "unknown";
+  const warning = detail?.warning || "";
   const popup = document.createElement("div");
   popup.style.position = "fixed";
   popup.style.left = `${Math.min(rect.left, window.innerWidth - 380)}px`;
@@ -1006,6 +1066,8 @@ function showTranslatePopup(original, translated, rect) {
   popup.style.padding = "12px";
   popup.style.fontSize = "13px";
   popup.innerHTML = `
+    <div style="margin-bottom:8px;color:#57606a;">来源：${escapeHtml(source)}</div>
+    ${warning ? `<div style="margin-bottom:8px;color:#d1242f;">${escapeHtml(warning)}</div>` : ""}
     <div style="margin-bottom:8px;color:#57606a;">原文</div>
     <div style="margin-bottom:10px;max-height:80px;overflow:auto;">${escapeHtml(original)}</div>
     <div style="margin-bottom:8px;color:#57606a;">翻译</div>
