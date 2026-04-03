@@ -721,26 +721,27 @@ function getTranslated(text = "") {
 async function translateLongText(text = "") {
   console.debug("[GitHub CN][translateLongText] request text:", text);
   try {
-    const response = await fetch(TRANSLATE_API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        q: text,
-        source: TRANSLATE_SOURCE_LANG,
-        target: TRANSLATE_TARGET_LANG,
-        format: "text",
-      }),
+    const runtimeResponse = await chrome.runtime.sendMessage({
+      type: "TRANSLATE_TEXT",
+      text,
+      preferredApi: TRANSLATE_API,
+      source: TRANSLATE_SOURCE_LANG,
+      target: TRANSLATE_TARGET_LANG,
+      format: "text",
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    const translatedText = data?.translatedText;
-    if (!translatedText || typeof translatedText !== "string") {
-      throw new Error(`Invalid translatedText: ${JSON.stringify(data)}`);
+    if (!runtimeResponse?.ok) {
+      throw new Error(runtimeResponse?.error || "runtime translate request failed");
     }
-    console.debug("[GitHub CN][translateLongText] response translatedText:", translatedText);
-    return translatedText;
+    if (!runtimeResponse?.translatedText || typeof runtimeResponse.translatedText !== "string") {
+      throw new Error(`Invalid translatedText: ${JSON.stringify(runtimeResponse)}`);
+    }
+    console.debug(
+      "[GitHub CN][translateLongText] response translatedText:",
+      runtimeResponse.translatedText,
+      "endpoint:",
+      runtimeResponse.endpoint
+    );
+    return runtimeResponse.translatedText;
   } catch (error) {
     console.error("[GitHub CN] translateLongText failed:", error);
     return TRANSLATE_FAILED_TEXT;

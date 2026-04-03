@@ -13,6 +13,10 @@
   "background": {
     "service_worker": "js/background.js"
   },
+  "host_permissions": [
+    "https://libretranslate.de/*",
+    "https://translate.astian.org/*"
+  ],
   "content_scripts": [
     {
       "matches": ["https://github.com/*"],
