@@ -580,9 +580,21 @@ const translationModules = {
 
 // 术语标准表：优先级高于 allData/模块词条
 const glossaryEntries = [
-  [`Star`, `星标`],
-  [`Stars`, `星标数`],
-  [`Starred`, `已标星`],
+  [`Home`, `首页`],
+  [`Feed`, `动态`],
+  [`Followers`, `粉丝`],
+  [`Following`, `关注中`],
+  [`Profile`, `个人资料`],
+  [`Settings`, `设置`],
+  [`Repositories`, `仓库`],
+  [`Top repositories`, `热门仓库`],
+  [`Search repositories`, `搜索仓库`],
+  [`Explore`, `探索`],
+  [`Marketplace`, `市场`],
+  [`Star`, `收藏`],
+  [`Stars`, `收藏数`],
+  [`Starred`, `已收藏`],
+  [`Unstar`, `取消收藏`],
   [`Followers`, `粉丝`],
   [`Following`, `关注中`],
   [`Watch`, `关注`],
@@ -630,11 +642,19 @@ const TRANSLATE_ATTRS = [
   "data-disable-with",
   "data-signin-label",
 ];
+const TRANSLATE_API = "https://libretranslate.de/translate";
+const TRANSLATE_SOURCE_LANG = "en";
+const TRANSLATE_TARGET_LANG = "zh";
+const TRANSLATE_FAILED_TEXT = "[翻译失败]";
+const TRANSLATE_MIXED_WARNING = "当前选中文本可能已被页面汉化污染（中英混杂），翻译结果可能不准确。";
 
 const dataMap = new Map();
 const dataMapLower = new Map();
+const phraseMap = new Map();
+const phraseMapLower = new Map();
 const glossaryMap = new Map();
 const glossaryMapLower = new Map();
+const cache = new Map();
 const allEntries = [...allData, ...Object.values(translationModules).flat()];
 glossaryEntries.forEach(([key, val]) => {
   const normalized = normalizeText(key);
@@ -649,8 +669,10 @@ allEntries.forEach(([key, val]) => {
   if (normalized.length <= 1) return;
   if (!normalized) return;
   if (!dataMap.has(normalized)) dataMap.set(normalized, val);
+  if (!phraseMap.has(normalized)) phraseMap.set(normalized, val);
   const lower = normalized.toLowerCase();
   if (!dataMapLower.has(lower)) dataMapLower.set(lower, val);
+  if (!phraseMapLower.has(lower)) phraseMapLower.set(lower, val);
 });
 const sortedGlossaryKeys = Array.from(glossaryMap.keys()).sort((a, b) => b.length - a.length);
 const sortedDataKeys = Array.from(dataMap.keys()).sort((a, b) => b.length - a.length);
@@ -663,6 +685,15 @@ function normalizeText(text = "") {
 
 function escapeRegExp(text = "") {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function escapeHtml(text = "") {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function smartPluralLookup(normalized = "", primaryMap, lowerMap) {
@@ -685,6 +716,101 @@ function getTranslated(text = "") {
     smartPluralLookup(normalized, dataMap, dataMapLower) ||
     ""
   );
+}
+
+async function translateLongText(text = "") {
+  console.debug("[GitHub CN][translateLongText] request text:", text);
+  try {
+    const runtimeResponse = await chrome.runtime.sendMessage({
+      type: "TRANSLATE_TEXT",
+      text,
+      preferredApi: TRANSLATE_API,
+      source: TRANSLATE_SOURCE_LANG,
+      target: TRANSLATE_TARGET_LANG,
+      format: "text",
+    });
+    if (!runtimeResponse?.ok) {
+      throw new Error(runtimeResponse?.error || "runtime translate request failed");
+    }
+    if (!runtimeResponse?.translatedText || typeof runtimeResponse.translatedText !== "string") {
+      throw new Error(`Invalid translatedText: ${JSON.stringify(runtimeResponse)}`);
+    }
+    console.debug(
+      "[GitHub CN][translateLongText] response translatedText:",
+      runtimeResponse.translatedText,
+      "endpoint:",
+      runtimeResponse.endpoint
+    );
+    return runtimeResponse.translatedText;
+  } catch (error) {
+    console.error("[GitHub CN] translateLongText failed:", error);
+    return TRANSLATE_FAILED_TEXT;
+  }
+}
+
+async function translateWithCache(text = "") {
+  if (!text) return "";
+  if (cache.has(text)) {
+    console.debug("[GitHub CN][translateWithCache] cache hit");
+    return cache.get(text);
+  }
+  console.debug("[GitHub CN][translateWithCache] cache miss, call api");
+  const translated = await translateLongText(text);
+  cache.set(text, translated);
+  return translated;
+}
+
+function isMixedChineseEnglish(text = "") {
+  return /[\u4e00-\u9fa5]/.test(text) && /[A-Za-z]/.test(text);
+}
+
+async function smartTranslate(text = "") {
+  const normalized = normalizeText(text);
+  if (!normalized) return "";
+  console.debug("[GitHub CN][smartTranslate] input:", normalized);
+  const glossaryResult = smartPluralLookup(normalized, glossaryMap, glossaryMapLower);
+  if (glossaryResult) {
+    console.debug("[GitHub CN][smartTranslate] glossary hit:", glossaryResult);
+    return glossaryResult;
+  }
+  if (normalized.length < 20) {
+    const phraseResult = smartPluralLookup(normalized, phraseMap, phraseMapLower);
+    if (phraseResult) {
+      console.debug("[GitHub CN][smartTranslate] phrase hit:", phraseResult);
+      return phraseResult;
+    }
+  }
+  console.debug("[GitHub CN][smartTranslate] fallback to API");
+  return translateWithCache(normalized);
+}
+
+async function smartTranslateDetailed(text = "") {
+  const normalized = normalizeText(text);
+  if (!normalized) {
+    return { translated: "", source: "empty", warning: "" };
+  }
+  const isMixed = isMixedChineseEnglish(normalized);
+  let warning = "";
+  if (isMixed) {
+    warning = TRANSLATE_MIXED_WARNING;
+    console.warn("[GitHub CN][smartTranslateDetailed] mixed text warning:", normalized);
+  }
+  const glossaryResult = smartPluralLookup(normalized, glossaryMap, glossaryMapLower);
+  if (glossaryResult) {
+    console.debug("[GitHub CN][smartTranslateDetailed] glossary hit");
+    return { translated: glossaryResult, source: "glossary", warning };
+  }
+  if (normalized.length < 20) {
+    const phraseResult = smartPluralLookup(normalized, phraseMap, phraseMapLower);
+    if (phraseResult) {
+      console.debug("[GitHub CN][smartTranslateDetailed] phrase hit");
+      return { translated: phraseResult, source: "phrase", warning };
+    }
+  }
+  console.debug("[GitHub CN][smartTranslateDetailed] API route");
+  const translated = await smartTranslate(normalized);
+  console.debug("[GitHub CN][smartTranslateDetailed] API result:", translated);
+  return { translated, source: "api", warning };
 }
 
 function replaceByPriority(source = "", keys = [], primaryMap, lowerMap) {
@@ -715,19 +841,24 @@ function shouldSkipTextNode(node) {
   if (SKIP_TAGS.has(parent.tagName)) return true;
   if (parent.closest("pre, code, textarea, [data-code-text], .blob-code")) return true;
   if (parent.closest(".blob-wrapper, .react-code-view, .markdown-body pre")) return true;
+  if (parent.closest(".js-commit-hash, .commit-ref, .branch-name, .file-info, .file-path")) return true;
+  if (parent.closest(".markdown-title, .comment-form-textarea, .js-blob-editor, .CodeMirror, .cm-editor")) return true;
+  if (parent.closest("input, textarea, [contenteditable='true'], [role='textbox']")) return true;
   // 避免误翻用户生成正文（Discussion/Issue/PR 评论正文）
   if (parent.closest(".comment-body, .markdown-body p, .js-comment-body")) return true;
   // Actions 日志正文只保留 UI 控件翻译，不翻译具体日志输出
   if (parent.closest(".js-checks-log, .ActionsLog, .js-log-line")) return true;
   // 跳过用户名/仓库名/路径常见节点
-  if (parent.closest("[data-hovercard-type='user'], [data-hovercard-type='repository'], .commit-author, .Link--secondary")) return true;
+  if (parent.closest("[data-hovercard-type='user'], [data-hovercard-type='repository'], .commit-author, .Link--secondary, .author, .user-mention")) return true;
   return false;
 }
 
 function looksLikeTechnicalText(text) {
   if (!text) return true;
   if (/^[a-f0-9]{7,40}$/i.test(text)) return true; // SHA
+  if (/^[\w.-]+\/[\w.-]+$/.test(text)) return true; // owner/repo
   if (/^refs\/|^[~^./\\-]+|\.\/|\/$/.test(text)) return true; // 路径/分支引用
+  if (/^(feat|fix|docs|chore|test|build|ci|perf|refactor)(\(.+\))?:/i.test(text)) return true; // commit message style
   if (/^[@#][\w-]+$/.test(text)) return true; // @mention / #123
   if (/[`$><{}[\]\\]/.test(text)) return true; // 命令/代码风格
   return false;
@@ -738,19 +869,23 @@ function translateTextNode(node) {
   const current = node.textContent;
   if (!current || !current.trim()) return;
   if (looksLikeTechnicalText(current.trim())) return;
+  if (node.__translated === current) return;
   if (translatedTextCache.get(node) === current) return;
   const translated = translateWithPriority(current);
   if (translated && translated !== current) {
     node.textContent = translated;
     translatedTextCache.set(node, translated);
+    node.__translated = translated;
     return;
   }
   translatedTextCache.set(node, current);
+  node.__translated = current;
 }
 
 function translateElementAttributes(el) {
   if (!el || el.nodeType !== Node.ELEMENT_NODE || SKIP_TAGS.has(el.tagName)) return;
   const attrSnapshot = TRANSLATE_ATTRS.map((attr) => `${attr}:${el.getAttribute(attr) || ""}`).join("|");
+  if (el.__translatedAttrs === attrSnapshot) return;
   if (translatedAttrCache.get(el) === attrSnapshot) return;
   TRANSLATE_ATTRS.forEach((attr) => {
     if (!el.hasAttribute(attr)) return;
@@ -772,6 +907,7 @@ function translateElementAttributes(el) {
   });
   const newSnapshot = TRANSLATE_ATTRS.map((attr) => `${attr}:${el.getAttribute(attr) || ""}`).join("|");
   translatedAttrCache.set(el, newSnapshot);
+  el.__translatedAttrs = newSnapshot;
 }
 
 function translateTree(root) {
@@ -798,17 +934,21 @@ function translateTree(root) {
   }
 }
 
-let rafId = null;
+let debounceTimer = null;
 const pendingRoots = new Set();
+function translatePage(root = document.body) {
+  translateTree(root || document.body);
+}
+
 function scheduleTranslate(root = document.body) {
   pendingRoots.add(root || document.body);
-  if (rafId) return;
-  rafId = requestAnimationFrame(() => {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
     const roots = Array.from(pendingRoots);
     pendingRoots.clear();
-    rafId = null;
-    roots.forEach((item) => translateTree(item));
-  });
+    debounceTimer = null;
+    roots.forEach((item) => translatePage(item));
+  }, 180);
 }
 
 const observer = new MutationObserver((mutations) => {
@@ -833,6 +973,7 @@ function startObserve() {
   if (!document.body) return;
   observer.observe(document.body, MutationObserverConfig);
   scheduleTranslate(document.body);
+  initSelectionTranslate();
 }
 
 if (document.readyState === "loading") {
@@ -845,3 +986,150 @@ if (document.readyState === "loading") {
 ["turbo:render", "turbo:load", "pjax:end", "details:toggled"].forEach((evt) => {
   document.addEventListener(evt, () => scheduleTranslate(document.body), true);
 });
+
+let selectedText = "";
+let translateButtonEl = null;
+let translatePopupEl = null;
+
+function isSelectionInForbiddenRegion(range) {
+  if (!range) return true;
+  const startNode = range.startContainer?.nodeType === Node.TEXT_NODE
+    ? range.startContainer.parentElement
+    : range.startContainer;
+  if (!startNode) return true;
+  return Boolean(
+    startNode.closest(
+      "code, pre, textarea, input, .blob-code, .blob-wrapper, .react-code-view, .js-blob-editor, .CodeMirror, .cm-editor, .comment-form-textarea, [contenteditable='true'], [role='textbox']"
+    )
+  );
+}
+
+function hideSelectionTranslateButton() {
+  if (translateButtonEl) {
+    translateButtonEl.remove();
+    translateButtonEl = null;
+  }
+}
+
+function hideTranslatePopup() {
+  if (translatePopupEl) {
+    translatePopupEl.remove();
+    translatePopupEl = null;
+  }
+}
+
+function showSelectionTranslateButton(range, text) {
+  hideSelectionTranslateButton();
+  const rect = range.getBoundingClientRect();
+  if (!rect || (!rect.width && !rect.height)) return;
+  const btn = document.createElement("button");
+  btn.textContent = "翻译";
+  btn.type = "button";
+  btn.style.position = "fixed";
+  btn.style.left = `${Math.min(rect.left + rect.width / 2, window.innerWidth - 80)}px`;
+  btn.style.top = `${Math.max(rect.top - 36, 8)}px`;
+  btn.style.zIndex = "999999";
+  btn.style.padding = "4px 10px";
+  btn.style.background = "#0969da";
+  btn.style.color = "#fff";
+  btn.style.border = "none";
+  btn.style.borderRadius = "6px";
+  btn.style.cursor = "pointer";
+  btn.style.fontSize = "12px";
+  btn.addEventListener("mousedown", (event) => event.preventDefault());
+  btn.addEventListener("click", async (event) => {
+    event.stopPropagation();
+    const detail = await smartTranslateDetailed(text);
+    console.debug("[GitHub CN][selection] final popup result:", detail);
+    showTranslatePopup(text, detail, rect);
+    hideSelectionTranslateButton();
+  });
+  document.body.appendChild(btn);
+  translateButtonEl = btn;
+}
+
+function showTranslatePopup(original, detail, rect) {
+  hideTranslatePopup();
+  const translated = detail?.translated || TRANSLATE_FAILED_TEXT;
+  const source = detail?.source || "unknown";
+  const warning = detail?.warning || "";
+  const popup = document.createElement("div");
+  popup.style.position = "fixed";
+  popup.style.left = `${Math.min(rect.left, window.innerWidth - 380)}px`;
+  popup.style.top = `${Math.min(rect.bottom + 8, window.innerHeight - 220)}px`;
+  popup.style.width = "360px";
+  popup.style.maxWidth = "calc(100vw - 24px)";
+  popup.style.background = "#ffffff";
+  popup.style.border = "1px solid #d0d7de";
+  popup.style.borderRadius = "10px";
+  popup.style.boxShadow = "0 8px 24px rgba(140,149,159,0.2)";
+  popup.style.zIndex = "999999";
+  popup.style.padding = "12px";
+  popup.style.fontSize = "13px";
+  popup.innerHTML = `
+    <div style="margin-bottom:8px;color:#57606a;">来源：${escapeHtml(source)}</div>
+    ${warning ? `<div style="margin-bottom:8px;color:#d1242f;">${escapeHtml(warning)}</div>` : ""}
+    <div style="margin-bottom:8px;color:#57606a;">原文</div>
+    <div style="margin-bottom:10px;max-height:80px;overflow:auto;">${escapeHtml(original)}</div>
+    <div style="margin-bottom:8px;color:#57606a;">翻译</div>
+    <div style="margin-bottom:10px;max-height:100px;overflow:auto;">${escapeHtml(translated)}</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button data-copy="1" type="button" style="padding:4px 8px;border:1px solid #d0d7de;border-radius:6px;background:#f6f8fa;cursor:pointer;">复制</button>
+      <button data-close="1" type="button" style="padding:4px 8px;border:1px solid #d0d7de;border-radius:6px;background:#f6f8fa;cursor:pointer;">关闭</button>
+    </div>
+  `;
+  popup.addEventListener("click", async (event) => {
+    event.stopPropagation();
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.dataset.close === "1") {
+      hideTranslatePopup();
+      return;
+    }
+    if (target.dataset.copy === "1") {
+      try {
+        await navigator.clipboard.writeText(translated);
+      } catch (error) {
+        console.error("[GitHub CN] copy translation failed:", error);
+      }
+    }
+  });
+  document.body.appendChild(popup);
+  translatePopupEl = popup;
+}
+
+function handleSelectionTranslate() {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+    selectedText = "";
+    hideSelectionTranslateButton();
+    return;
+  }
+  const text = selection.toString().trim();
+  if (!text || text.length > 500) {
+    selectedText = "";
+    hideSelectionTranslateButton();
+    return;
+  }
+  const range = selection.getRangeAt(0);
+  if (isSelectionInForbiddenRegion(range)) {
+    selectedText = "";
+    hideSelectionTranslateButton();
+    return;
+  }
+  selectedText = text;
+  showSelectionTranslateButton(range, selectedText);
+}
+
+function initSelectionTranslate() {
+  document.addEventListener("mouseup", () => setTimeout(handleSelectionTranslate, 0), true);
+  document.addEventListener("selectionchange", () => setTimeout(handleSelectionTranslate, 0), true);
+  document.addEventListener("click", (event) => {
+    if (translatePopupEl && !translatePopupEl.contains(event.target)) hideTranslatePopup();
+    if (translateButtonEl && !translateButtonEl.contains(event.target)) hideSelectionTranslateButton();
+  }, true);
+  window.addEventListener("scroll", () => {
+    hideSelectionTranslateButton();
+    hideTranslatePopup();
+  }, true);
+}
