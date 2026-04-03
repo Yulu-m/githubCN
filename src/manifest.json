@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "GithubCN",
   "short_name": "GithubCN",
-  "description": "Github 汉化插件",
-  "version": "1.4",
+  "description": "GitHub 汉化插件（支持模式切换和自定义词条）",
+  "version": "2.0.0",
   "homepage_url": "https://github.com/JQiue/githubCN",
   "icons": {
     "16": "img/icon-16.png",
@@ -13,16 +13,36 @@
   "background": {
     "service_worker": "js/background.js"
   },
+  "action": {
+    "default_title": "GithubCN",
+    "default_popup": "popup/popup.html"
+  },
+  "options_page": "options/options.html",
+  "permissions": ["storage", "downloads"],
   "host_permissions": [
+    "https://github.com/*",
     "https://libretranslate.de/*",
     "https://translate.astian.org/*"
   ],
   "content_scripts": [
     {
       "matches": ["https://github.com/*"],
-      "js": ["js/content.js"],
+      "js": [
+        "js/constants.js",
+        "js/storage.js",
+        "js/dictionary/navigation.js",
+        "js/dictionary/repository.js",
+        "js/dictionary/issues-pr.js",
+        "js/dictionary/actions.js",
+        "js/dictionary/settings.js",
+        "js/dictionary/profile-search.js",
+        "js/dictionary/index.js",
+        "js/translator.js",
+        "js/observer.js",
+        "js/content.js"
+      ],
       "run_at": "document_end",
-      "all_frames": true
+      "all_frames": false
     }
   ]
 }
